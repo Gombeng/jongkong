@@ -1,9 +1,8 @@
-<script lang="ts">
-  import LinkItem from "./LinkItem.svelte";
-  import Text from "./Text.svelte";
+<script>
+  import LinkItem from "../../components/LinkItem.svelte";
+  import Text from "../../components/Text.svelte";
 
-
-  export let title, desc, url, isChecked: any, onToggle;
+  export let title, desc, url, isChecked, onToggle;
 </script>
 
 <div class="collapse collapse-arrow border border-base-300">

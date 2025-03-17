@@ -1,43 +1,58 @@
 <script>
   import { Pencil, Trash2 } from "@lucide/svelte";
   import Button from "../components/Button.svelte";
+  import Input from "../components/Input.svelte";
 
-  export let projects = [];
+  export let projects;
 
-  // Track whether the form is visible
   let showForm = false;
-
-  // Temporary variables to hold the form input values
   let title = "";
   let desc = "";
   let repoUrl = "";
   let demoUrl = "";
+  let editIndex = null;
 
-  // Function to handle form submission
-  function addProject() {
+  function addOrUpdateProject() {
     if (title && desc && repoUrl && demoUrl) {
-      // Add the new project to the list
-      projects = [
-        ...projects,
-        {
-          title,
-          desc,
-          url: {
-            repo: repoUrl,
-            demo: demoUrl,
-          },
-        },
-      ];
+      const newProject = {
+        title,
+        desc,
+        url: { repo: repoUrl, demo: demoUrl },
+      };
 
-      // Reset the form inputs
-      title = "";
-      desc = "";
-      repoUrl = "";
-      demoUrl = "";
+      if (editIndex !== null) {
+        projects[editIndex] = newProject;
+      } else {
+        projects = [...projects, newProject];
+      }
 
-      // Hide the form
-      showForm = false;
+      resetForm();
     }
+  }
+
+  function editProject(index) {
+    editIndex = index;
+    let project = projects[index];
+    title = project.title;
+    desc = project.desc;
+    repoUrl = project.url.repo;
+    demoUrl = project.url.demo;
+    showForm = true;
+  }
+
+  function deleteProject(index) {
+    if (confirm("Delete this project?")) {
+      projects = projects.filter((_, i) => i !== index);
+    }
+  }
+
+  function resetForm() {
+    title = "";
+    desc = "";
+    repoUrl = "";
+    demoUrl = "";
+    editIndex = null;
+    showForm = false;
   }
 </script>
 
@@ -46,55 +61,33 @@
   <Button onclick={() => (showForm = true)} title="Add" />
 </div>
 
-<!-- Form to Add a New Project -->
 {#if showForm}
   <div class="form-container pb-10">
-    <fieldset class="fieldset">
-      <legend class="fieldset-legend">Title</legend>
-      <input
-        type="text"
-        class="input w-full"
-        bind:value={title}
-        placeholder="Title (e.g., Cashk)"
-      />
-    </fieldset>
-
-    <fieldset class="fieldset">
-      <legend class="fieldset-legend">Description</legend>
-      <textarea
-        class="input w-full"
-        bind:value={desc}
-        placeholder="Description (e.g., A personal finance tracker)"
-      ></textarea>
-    </fieldset>
-
-    <fieldset class="fieldset">
-      <legend class="fieldset-legend">Repository URL</legend>
-      <input
-        type="url"
-        class="input w-full"
-        bind:value={repoUrl}
-        placeholder="Repository URL (e.g., https://github.com/yourusername/cashk)"
-      />
-    </fieldset>
-
-    <fieldset class="fieldset">
-      <legend class="fieldset-legend">Demo URL</legend>
-      <input
-        type="url"
-        class="input w-full"
-        bind:value={demoUrl}
-        placeholder="Demo URL (e.g., https://cashk.vercel.app/)"
-      />
-    </fieldset>
-
+    <Input label="Title" bind:value={title} placeholder="Title (e.g., Cashk)" />
+    <Input
+      label="Description"
+      bind:value={desc}
+      placeholder="Description (e.g., A personal finance tracker)"
+    />
+    <Input
+      label="Repository URL"
+      bind:value={repoUrl}
+      placeholder="Repository URL (e.g., https://github.com/yourusername/cashk)"
+    />
+    <Input
+      label="Demo URL"
+      bind:value={demoUrl}
+      placeholder="Demo URL (e.g., https://cashk.vercel.app/)"
+    />
     <div class="p-2"></div>
-    <Button onclick={addProject} title="Save" />
-    <Button color="neutral" onclick={() => (showForm = false)} title="Cancel" />
+    <Button
+      onclick={addOrUpdateProject}
+      title={editIndex !== null ? "Update" : "Save"}
+    />
+    <Button color="neutral" onclick={resetForm} title="Cancel" />
   </div>
 {/if}
 
-<!-- Display the List of Projects -->
 {#if projects}
   <ul class="list mb-3">
     {#each projects as project, index}
@@ -110,13 +103,13 @@
             <a href={project.url.demo} target="_blank" class="link"> Demo </a>
           </div>
         </div>
-        <div>
-          <div class="tooltip me-3" data-tip="Edit">
+        <div class="flex gap-2">
+          <Button color="neutral" onclick={() => editProject(index)}>
             <Pencil size={20} />
-          </div>
-          <div class="tooltip" data-tip="Delete">
+          </Button>
+          <Button color="neutral" onclick={() => deleteProject(index)}>
             <Trash2 size={20} />
-          </div>
+          </Button>
         </div>
       </li>
     {/each}

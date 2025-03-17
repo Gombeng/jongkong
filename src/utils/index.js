@@ -3,6 +3,7 @@ import Dashboard from "../pages/Dashboard.svelte";
 import Login from "../pages/Login.svelte";
 import Notfound from "../pages/Notfound.svelte";
 import Register from "../pages/Register.svelte";
+import { writable } from "svelte/store";
 
 export const themes = [
   "acid",
@@ -42,3 +43,55 @@ export const routes = {
   }),
   "*": Notfound,
 };
+
+// export const websiteData = writable({
+//   hero: {
+//     name: "John Doe",
+//     role: "Senior Consultant",
+//     desc: "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quisquam, nemo.",
+//     links: [{ title: "CV", link: "cv.com" }],
+//   },
+//   about: {
+//     experiences: [
+//       {
+//         position: "Frontend Developer",
+//         company: "AIA Singapore",
+//         start: "2023",
+//         end: "2025",
+//         location: "Batam",
+//         tasks: [
+//           "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Nemo, omnis.",
+//         ],
+//       },
+//       {
+//         position: "Backend Developer",
+//         company: "Astra International",
+//         start: "2020",
+//         end: "2023",
+//         location: "Jakarta",
+//         tasks: [
+//           "Lorem ipsum dolor, sit amet consectetur adipisicing elit. Nemo, omnis.",
+//         ],
+//       },
+//     ],
+//     education: [],
+//   },
+//   projects: [
+//     {
+//       title: "asf",
+//       desc: "sfa",
+//       url: {
+//         repo: "sfa",
+//         demo: "sfda",
+//       },
+//     },
+//   ],
+//   techStacks: ['javascript', 'svelte', 'react', 'expressjs', 'mongodb'],
+// });
+
+export const websiteData = writable({
+  hero: { name: "", role: "", desc: "", links: [] },
+  about: { experiences: [], education: [] },
+  projects: [],
+  techStacks: [],
+});

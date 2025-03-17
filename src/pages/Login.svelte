@@ -2,38 +2,43 @@
   import { push } from "svelte-spa-router";
   import api from "../utils/api";
   import Toast from "../components/Toast.svelte";
+  import Input from "../components/Input.svelte";
+  import Button from "../components/Button.svelte";
+  import { z } from "zod";
 
   let email = "";
   let password = "";
   let message = "";
   let isLoading = false;
+  let errors = {};
+
+  const schema = z.object({
+    email: z.string().email("Invalid email format"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+  });
+
+  function validateForm() {
+    const result = schema.safeParse({ email, password });
+    errors = result.success ? {} : result.error.format();
+    return result.success;
+  }
 
   async function handleLogin() {
+    if (!validateForm()) return;
     isLoading = true;
 
     try {
-      if (!email || !password) {
-        message = "Please fill in all fields.";
-        return;
-      }
-
       const res = await api.post("/auth/login", { email, password });
-
       message = res.data.message || "Success!";
       localStorage.setItem("token", res.data.data.token);
       localStorage.setItem("userData", JSON.stringify(res.data));
-
-      setTimeout(() => {
-        push("/dashboard");
-      }, 1500);
+      setTimeout(() => push("/dashboard"), 1500);
     } catch (err) {
       message =
         err.response?.data?.message || "Login failed. Please try again.";
     } finally {
       isLoading = false;
-      setTimeout(() => {
-        message = "";
-      }, 1500);
+      setTimeout(() => (message = ""), 1500);
     }
   }
 </script>
@@ -46,47 +51,23 @@
       {#if message}
         <Toast {message} />
       {/if}
+      
+      <Input
+        label="Email"
+        type="email"
+        bind:value={email}
+        error={errors.email?.["_errors"]?.[0]}
+      />
 
-      <!-- Email Input -->
-      <fieldset class="fieldset">
-        <legend class="fieldset-legend">Email</legend>
-        <input
-          type="email"
-          class="input w-full"
-          bind:value={email}
-          placeholder="Enter your email"
-        />
-      </fieldset>
+      <Input
+        label="Password"
+        type="password"
+        bind:value={password}
+        error={errors.password?.["_errors"]?.[0]}
+      />
 
-      <!-- Password Input -->
-      <fieldset class="fieldset">
-        <legend class="fieldset-legend">Password</legend>
-        <input
-          type="password"
-          class="input w-full"
-          bind:value={password}
-          placeholder="Enter your password"
-        />
-      </fieldset>
+      <Button onclick={handleLogin} title="Login" disabled={isLoading} />
 
-      <!-- Forgot Password -->
-      <!-- <div class="flex items-center justify-between">
-        <div></div>
-        <a href="#" class="text-sm link link-primary">Forgot password?</a>
-      </div> -->
-
-      <!-- Login Button -->
-      <div class="form-control mt-3">
-        <button
-          on:click={handleLogin}
-          class="btn btn-primary w-full"
-          disabled={message}
-        >
-          Login
-        </button>
-      </div>
-
-      <!-- Sign Up Link -->
       <div class="text-center mt-4">
         <span class="text-sm">Don't have an account? </span>
         <a href="#/register" class="link link-primary">Sign up</a>

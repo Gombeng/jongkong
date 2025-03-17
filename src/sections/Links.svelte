@@ -10,14 +10,6 @@
   let title = "";
   let link = "";
 
-  function updateField(field, value) {
-    if (field === "title") {
-      title = value;
-    } else if (field === "link") {
-      link = value;
-    }
-  }
-
   function addOrUpdateLink() {
     if (!title || !link) return;
 
@@ -61,15 +53,13 @@
   <div class="form-container">
     <Input
       label="Title"
-      value={title}
+      bind:value={title}
       placeholder="e.g. CV, Linkedin, X."
-      onChange={(val) => updateField("title", val)}
     />
     <Input
       label="Link"
-      value={link}
+      bind:value={link}
       placeholder="e.g. username-linkedin.com"
-      onChange={(val) => updateField("link", val)}
     />
     <div class="p-2"></div>
     <Button
@@ -82,7 +72,7 @@
 
 <ul class="list mb-3">
   {#each links as link, index}
-    <li class="list-row flex justify-between">
+    <li class="list-row flex justify-between py-2 border-b">
       <div>
         <div>{link.title}</div>
         <a
@@ -94,16 +84,12 @@
         </a>
       </div>
       <div class="flex gap-3">
-        <button class="tooltip" data-tip="Edit" onclick={() => editLink(index)}>
+        <Button color="ghost" onclick={() => editLink(index)}>
           <Pencil size={20} />
-        </button>
-        <button
-          class="tooltip"
-          data-tip="Delete"
-          onclick={() => deleteLink(index)}
-        >
+        </Button>
+        <Button color="danger" onclick={() => deleteLink(index)}>
           <Trash2 size={20} />
-        </button>
+        </Button>
       </div>
     </li>
   {/each}

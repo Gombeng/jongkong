@@ -1,6 +1,4 @@
 <script>
-  // @ts-nocheck
-
   export let label = "";
   export let value = "";
 </script>

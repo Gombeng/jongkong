@@ -1,73 +1,80 @@
 <script>
   import { Pencil, Trash2 } from "@lucide/svelte";
   import Button from "../components/Button.svelte";
+  import Input from "../components/Input.svelte";
 
   export let experiences = [];
 
   let showForm = false;
+  let editIndex = null;
+  let taskInput = "";
 
-  // Temporary variables to hold the form input values
   let position = "";
   let company = "";
   let start = "";
   let end = "";
-  let locationName = "";
-  let locationMaps = "";
+  let location = "";
   let tasks = [];
 
-  // Temporary variable for a single task input
-  let taskInput = "";
+  function addOrUpdateExperience() {
+    if (!position || !company || !start || !end || !location) return;
 
-  // Function to handle form submission
-  function addExperience() {
-    if (
-      position &&
-      company &&
-      start &&
-      end &&
-      locationName &&
-      locationMaps &&
-      tasks.length > 0
-    ) {
-      // Add the new experience to the list
+    if (editIndex !== null) {
+      experiences[editIndex] = {
+        position,
+        company,
+        start,
+        end,
+        location,
+        tasks,
+      };
+    } else {
       experiences = [
         ...experiences,
-        {
-          position,
-          company,
-          start,
-          end,
-          location: {
-            name: locationName,
-            maps: locationMaps,
-          },
-          tasks,
-        },
+        { position, company, start, end, location, tasks },
       ];
+    }
 
-      // Reset the form inputs
-      position = "";
-      company = "";
-      start = "";
-      end = "";
-      locationName = "";
-      locationMaps = "";
-      tasks = [];
+    resetForm();
+  }
 
-      // Hide the form
-      showForm = false;
+  function deleteExperience(index) {
+    if (confirm("Delete this experience?")) {
+      experiences = experiences.filter((_, i) => i !== index);
     }
   }
 
-  // Function to add a task to the tasks array
+  function editExperience(index) {
+    let exp = experiences[index];
+    position = exp.position;
+    company = exp.company;
+    start = exp.start;
+    end = exp.end;
+    location = exp.location;
+    tasks = [...exp.tasks];
+    editIndex = index;
+    showForm = true;
+  }
+
+  function resetForm() {
+    position = "";
+    company = "";
+    start = "";
+    end = "";
+    location = "";
+    tasks = [];
+    taskInput = "";
+    editIndex = null;
+    showForm = false;
+  }
+
   function addTask() {
     if (taskInput) {
       tasks = [...tasks, taskInput];
-      taskInput = ""; // Clear the task input
+      taskInput = "";
     }
   }
 
-  // Function to remove a task from the tasks array
   function removeTask(index) {
     tasks = tasks.filter((_, i) => i !== index);
   }
@@ -78,68 +85,17 @@
   <Button onclick={() => (showForm = true)} title="Add" />
 </div>
 
-<!-- Form to Add a New Experience -->
 {#if showForm}
   <div class="form-container pb-10">
-    <fieldset class="fieldset">
-      <legend class="fieldset-legend">Position</legend>
-      <input
-        type="text"
-        class="input w-full"
-        bind:value={position}
-        placeholder="Position (e.g., Full-stack Developer)"
-      />
-    </fieldset>
-
-    <fieldset class="fieldset">
-      <legend class="fieldset-legend">Company</legend>
-      <input
-        type="text"
-        class="input w-full"
-        bind:value={company}
-        placeholder="Company (e.g., AIA Singapore)"
-      />
-    </fieldset>
-
-    <fieldset class="fieldset">
-      <legend class="fieldset-legend">Start Date</legend>
-      <input
-        type="text"
-        class="input w-full"
-        bind:value={start}
-        placeholder="Start Date (e.g., Mar 2023)"
-      />
-    </fieldset>
-
-    <fieldset class="fieldset">
-      <legend class="fieldset-legend">End Date</legend>
-      <input
-        type="text"
-        class="input w-full"
-        bind:value={end}
-        placeholder="End Date (e.g., Present)"
-      />
-    </fieldset>
-
-    <fieldset class="fieldset">
-      <legend class="fieldset-legend">Location Name</legend>
-      <input
-        type="text"
-        class="input w-full"
-        bind:value={locationName}
-        placeholder="Location Name (e.g., Batam)"
-      />
-    </fieldset>
-
-    <fieldset class="fieldset">
-      <legend class="fieldset-legend">Location Maps URL</legend>
-      <input
-        type="url"
-        class="input w-full"
-        bind:value={locationMaps}
-        placeholder="Location Maps URL (e.g., https://maps.app.goo.gl/...)"
-      />
-    </fieldset>
+    <Input
+      label="Position"
+      bind:value={position}
+      placeholder="Position (e.g., Full-stack Developer)"
+    />
+    <Input label="Company" bind:value={company} placeholder="Company Name" />
+    <Input label="Start" bind:value={start} placeholder="Start Year" />
+    <Input label="End" bind:value={end} placeholder="End Year" />
+    <Input label="Location" bind:value={location} placeholder="Location" />
 
     <fieldset class="fieldset">
       <legend class="fieldset-legend">Tasks</legend>
@@ -148,61 +104,58 @@
           type="text"
           class="input w-full"
           bind:value={taskInput}
-          placeholder="Task (e.g., Developed frontend applications)"
+          placeholder="Task description"
         />
-        <Button onclick={addTask} title="Add Task" />
+        <Button title="Add Task" onclick={addTask} />
       </div>
       <ul class="list">
         {#each tasks as task, index}
           <li class="list-row flex justify-between">
             <div>{task}</div>
-            <div class="tooltip" data-tip="Delete">
-              <button on:click={() => removeTask(index)}>
-                <Trash2 size={16} />
-              </button>
-            </div>
+            <Button color="neutral" onclick={() => removeTask(index)}>
+              <Trash2 size={16} />
+            </Button>
           </li>
         {/each}
       </ul>
     </fieldset>
 
     <div class="p-2"></div>
-    <Button onclick={addExperience} title="Save" />
-    <Button color="neutral" onclick={() => (showForm = false)} title="Cancel" />
+    <Button
+      title={editIndex !== null ? "Update" : "Save"}
+      onclick={addOrUpdateExperience}
+    />
+    <Button color="neutral" title="Cancel" onclick={resetForm} />
   </div>
 {/if}
 
-<!-- Display the List of Experiences -->
-{#if experiences}
-  <ul class="list mb-3">
-    {#each experiences as experience, index}
-      <li class="list-row flex flex-col">
-        <div class="flex justify-between">
-          <div>
-            <div class="font-bold">{experience.position}</div>
-            <div class="text-sm opacity-80">
-              {experience.location.name} | {experience.company}
-            </div>
-            <div class="text-sm opacity-60">
-              {experience.start} - {experience.end}
-            </div>
-            <div class="text-sm opacity-60"></div>
+<ul class="list mb-3">
+  {#each experiences as experience, index}
+    <li class="list-row flex flex-col">
+      <div class="flex justify-between">
+        <div>
+          <div class="font-bold">{experience.position}</div>
+          <div class="text-sm opacity-80">
+            {experience.location} | {experience.company}
           </div>
-          <div>
-            <div class="tooltip me-3" data-tip="Edit">
-              <Pencil size={20} />
-            </div>
-            <div class="tooltip" data-tip="Delete">
-              <Trash2 size={20} />
-            </div>
+          <div class="text-sm opacity-60">
+            {experience.start} - {experience.end}
           </div>
         </div>
-        <ul class="list-disc pl-5">
-          {#each experience.tasks as task}
-            <li class="text-sm opacity-80">{task}</li>
-          {/each}
-        </ul>
-      </li>
-    {/each}
-  </ul>
-{/if}
+        <div class="flex gap-2">
+          <Button color="primary" onclick={() => editExperience(index)}>
+            <Pencil size={20} />
+          </Button>
+          <Button color="error" onclick={() => deleteExperience(index)}>
+            <Trash2 size={20} />
+          </Button>
+        </div>
+      </div>
+      <ul class="list-disc pl-5">
+        {#each experience.tasks as task}
+          <li class="text-sm opacity-80">{task}</li>
+        {/each}
+      </ul>
+    </li>
+  {/each}
+</ul>

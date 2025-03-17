@@ -1,105 +1,103 @@
 <script>
-  import Input from "../components/Input.svelte";
   import Navbar from "../components/Navbar.svelte";
-  import Textarea from "../components/Textarea.svelte";
+  import Toast from "../components/Toast.svelte";
+  import Hero from "../sections/Hero.svelte";
+  import Experiences from "../sections/Experiences.svelte";
+  import Projects from "../sections/Projects.svelte";
+  import { websiteData } from "../utils";
   import api from "../utils/api";
-  import Build from "./Build.svelte";
-  import Review from "./Review.svelte";
   import Website1 from "./review/website1/Website1.svelte";
+  import Button from "../components/Button.svelte";
+  import Techstack from "../sections/Techstack.svelte";
 
-  // let websiteData,
-  //   isWebsite = false,
-  //   message = "";
+  let message = "";
+  let errorMessage = "";
+  let isWebsite = false;
+  let isLoading = false;
 
-  // async function fetchPersonalWeb() {
-  //   try {
-  //     const res = await api.get("/website");
-  //     websiteData = res.data.data;
-  //     isWebsite = true;
-  //   } catch (err) {
-  //     message =
-  //       err.response?.data?.message || "An error occurred. Please try again.";
-  //   }
-  //   setTimeout(() => {
-  //     message = "";
-  //   }, 1500);
-  // }
-  // fetchPersonalWeb();
+  $: console.log("websiteData: ", $websiteData);
 
-  import { writable } from "svelte/store";
+  async function fetchWebsiteData() {
+    try {
+      let res = await api.get("/website");
+      if (res.status !== 404) isWebsite = true;
+      websiteData.set(res.data.data);
+      websiteData.subscribe((value) => {
+        webPayload = value;
+      })();
+    } catch (error) {
+      webPayload = $websiteData;
+      console.error("Failed to fetch website data:", error);
+    }
+  }
 
-  export const websiteData = writable({
-    hero: { name: "", role: "", desc: "", links: [] },
-    about: { experiences: [], education: [] },
-    projects: [],
-    techStacks: [],
-  });
+  let webPayload;
+
+  async function handleSubmit() {
+    if (
+      !webPayload ||
+      !webPayload.hero?.name.trim() ||
+      !webPayload.hero?.role.trim() ||
+      !webPayload.hero?.desc.trim()
+    ) {
+      errorMessage = "Please at least fill name, position and summary field!";
+      return;
+    }
+
+    try {
+      isLoading = true;
+      let res;
+      if (isWebsite) {
+        res = await api.put("/website", webPayload);
+        message = res.data.message || "Success!";
+      } else {
+        res = await api.post("/website", webPayload);
+      }
+    } catch (error) {
+      errorMessage =
+        error.response?.data?.message || "Failed to save website data.";
+    } finally {
+      isLoading = false;
+      setTimeout(() => {
+        message = "";
+        errorMessage = "";
+      }, 2000);
+    }
+  }
+
+  fetchWebsiteData();
 </script>
+
+{#if message}
+  <Toast {message} />
+{/if}
 
 <section class="mx-auto">
   <Navbar />
 
-  <div class="flex gap-5 p-5">
+  <div class="flex gap-5 p-5 justify-center">
     <!-- left -->
-    <div class="min-w-lg max-w-xl pb-3">
-      <h1>Hero section</h1>
-      <Input label="Name" bind:value={$websiteData.hero.name} />
-      <Input
-        label="Position/Desired Position"
-        bind:value={$websiteData.hero.role}
-      />
-      <Textarea
-        label="Professional summary"
-        bind:value={$websiteData.hero.desc}
-      />
+    <div class=" max-w-md">
+      <Hero />
+      <Experiences bind:experiences={$websiteData.about.experiences} />
+      <Projects bind:projects={$websiteData.projects} />
+      <Techstack bind:techStacks={$websiteData.techStacks} />
+
+      {#if errorMessage}
+        <p class="text-red-500 mt-2">{errorMessage}</p>
+      {/if}
+
+      <div class="p-4"></div>
+
+      <Button onclick={handleSubmit} disabled={isLoading}>
+        {isLoading ? "Saving..." : isWebsite ? "Update" : "Save"}
+      </Button>
     </div>
 
     <!-- right -->
-    <div class="">
-      <Website1 websiteData={$websiteData} />
+    <div class="w-full">
+      <h1>Preview</h1>
+      <Website1 />
     </div>
   </div>
 </section>
-
-<!-- 
-<section class="mx-auto">
-  <Navbar />
-  <h1 class="pb-5 font-semibold">Jongkong</h1>
-
-  <div class="flex gap-5 p-5">
-    <Build {isWebsite} {message} {websiteData} />
-    <Review {websiteData} />
-  </div>
-</section> -->
-
-<!-- <section class="max-w-md mx-auto py-5">
-  <h1 class="pb-5 font-semibold">Jongkong</h1>
-  <div class="tabs tabs-lift">
-    <input
-      type="radio"
-      name="tabs"
-      class="tab"
-      aria-label="Build"
-      bind:group={activeTab}
-      value="build"
-    />
-    <div class="tab-content border-base-300 bg-base-100 p-3">
-      <Build />
-    </div>
-
-    <input
-      type="radio"
-      name="tabs"
-      class="tab"
-      aria-label="Review"
-      bind:group={activeTab}
-      value="review"
-    />
-    <div class="tab-content border-base-300 bg-base-100 p-3">
-      <Review />
-    </div>
-  </div>
-
-  <div class="p-3"></div>
-  <Button title="Save/Update" />
-</section> -->

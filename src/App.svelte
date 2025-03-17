@@ -3,6 +3,6 @@
   import { routes } from "./utils";
 </script>
 
-<main data-theme="light">
+<main data-theme="dark">
   <Router {routes} />
 </main>
