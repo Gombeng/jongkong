@@ -37,6 +37,10 @@ const isAuthenticated = () =>
 export const routes = {
   "/login": Login,
   "/register": Register,
+  "/": wrap({
+    component: Dashboard,
+    conditions: [isAuthenticated],
+  }),
   "/dashboard": wrap({
     component: Dashboard,
     conditions: [isAuthenticated],
